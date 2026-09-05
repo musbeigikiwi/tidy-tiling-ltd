@@ -20,16 +20,39 @@ const reviews = [
 export default function Home() {
   const [review, setReview] = useState(0)
   const [sent, setSent] = useState(false)
+  const [sending, setSending] = useState(false)
+  const [error, setError] = useState('')
 
   useEffect(() => {
     const id = setInterval(() => setReview((r) => (r + 1) % reviews.length), 4500)
     return () => clearInterval(id)
   }, [])
 
-  function submitQuote(e: FormEvent<HTMLFormElement>) {
+  async function submitQuote(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    setSent(true)
-    e.currentTarget.reset()
+    setSending(true)
+    setSent(false)
+    setError('')
+
+    const form = e.currentTarget
+    const data = new FormData(form)
+    const payload = Object.fromEntries(data.entries())
+
+    try {
+      const response = await fetch('/api/quotes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+      const result = await response.json()
+      if (!response.ok) throw new Error(result.error || 'Unable to send quote request.')
+      setSent(true)
+      form.reset()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unable to send quote request.')
+    } finally {
+      setSending(false)
+    }
   }
 
   return (
@@ -99,11 +122,12 @@ export default function Home() {
         <div className="quoteCopy"><p className="eyebrow">START A PROJECT</p><h2>Tell us what you need tiled.</h2><p>Send a few project details and we can review the job and arrange the next step.</p><div className="contactMini"><b>Tidy Tiling Ltd</b><span>Bathroom • Kitchen • Floor • Wall • Renovation</span><span>New Zealand</span></div></div>
         <form className="quoteForm" onSubmit={submitQuote}>
           <div className="two"><label>Your name<input required name="name" placeholder="Full name" /></label><label>Phone<input required name="phone" placeholder="021 ..." /></label></div>
-          <div className="two"><label>Email<input required type="email" name="email" placeholder="you@email.com" /></label><label>Project type<select name="type" defaultValue=""><option value="" disabled>Select service</option><option>Bathroom Tiling</option><option>Shower Tiling</option><option>Kitchen Splashback</option><option>Floor Tiling</option><option>Tile Repair</option><option>Renovation Tiling</option></select></label></div>
+          <div className="two"><label>Email<input required type="email" name="email" placeholder="you@email.com" /></label><label>Project type<select name="type" required defaultValue=""><option value="" disabled>Select service</option><option>Bathroom Tiling</option><option>Shower Tiling</option><option>Kitchen Splashback</option><option>Floor Tiling</option><option>Tile Repair</option><option>Renovation Tiling</option></select></label></div>
           <label>Project location<input name="location" placeholder="Suburb / city" /></label>
           <label>Tell us about the job<textarea required name="message" rows={5} placeholder="Approximate size, tile type, renovation details, preferred timing..." /></label>
-          <button className="primary submit" type="submit">Send Quote Request →</button>
-          {sent && <p className="success">Thanks — your demo quote request was captured on screen. Backend storage is the next step.</p>}
+          <button className="primary submit" type="submit" disabled={sending}>{sending ? 'Sending…' : 'Send Quote Request →'}</button>
+          {sent && <p className="success">Thanks — your quote request has been received.</p>}
+          {error && <p className="success" style={{color:'#ffb4b4'}}>{error}</p>}
         </form>
       </section>
 
