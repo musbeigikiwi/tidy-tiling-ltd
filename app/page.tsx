@@ -1,6 +1,7 @@
 'use client'
 
 import { FormEvent, useEffect, useState } from 'react'
+import TidyChat from './components/TidyChat'
 
 const services = [
   ['Bathroom Tiling', 'Clean, precise bathroom tiling with careful waterproofing and premium finishing.'],
@@ -132,6 +133,7 @@ export default function Home() {
       </section>
 
       <footer><div className="brand footerBrand"><span>TIDY</span> TILING <small>LTD</small></div><p>Professional tiling with a clean finish.</p><div><a href="#services">Services</a><a href="#work">Our Work</a><a href="#reviews">Reviews</a><a href="#quote">Quote</a></div><small>© 2026 Tidy Tiling Ltd. All rights reserved.</small></footer>
+      <TidyChat />
     </main>
   )
 }
